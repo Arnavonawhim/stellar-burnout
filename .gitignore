@@ -1,0 +1,108 @@
+# =========================================
+# UNITY STANDARD
+# =========================================
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Oo]bj/
+[Mm]emoryCaptures/
+UserSettings/
+
+# Logs
+*.log
+
+# Visual Studio / Rider
+.vs/
+*.csproj
+*.sln
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.idea/
+*.DotSettings
+
+# Unity Asset Store
+*.unitypackage
+
+# Crashes
+sysinfo.txt
+
+# =========================================
+# UNITY GENERATED PROJECT SETTINGS THAT ARE SAFE TO IGNORE
+# =========================================
+UnityPackageManager/
+# Packages remain tracked through manifest.json + lock
+
+# =========================================
+# VUFORIA / AR SPECIFIC
+# =========================================
+
+# Vuforia engine build artifacts
+[Vv]uforia/
+[Vv]uforiaEngine/
+Assets/StreamingAssets/Vuforia/
+Assets/Editor/Vuforia/
+
+# Auto-generated license/data during builds
+Assets/Resources/Vuforia/
+Assets/StreamingAssets/Vuforia/
+
+# Vuforia database build cache
+*.dat
+*.xml
+
+# Serialized device tracking data
+*.DeviceTracker
+
+# =========================================
+# XR / AR FOUNDATION PLUGINS
+# (keeps ARCore/ARKit build data out)
+# =========================================
+
+# ARCore build cache
+Assets/Plugins/Android/com.google.ar.core/
+Assets/Plugins/Android/arcore-unity.aar
+
+# ARKit/XR plugin cache
+Assets/Plugins/iOS/UnityARKit.a
+Assets/Plugins/iOS/ARKit*
+
+# AR Subsystems temp builds
+Library/PackageCache/com.unity.xr*
+Library/PackageCache/com.unity.subsystems*
+
+# =========================================
+# PLATFORM BUILDS (OPTIONAL)
+# =========================================
+
+# Android
+*.apk
+*.aab
+
+# Xcode
+*.xcworkspace/
+*.xcodeproj/
+DerivedData/
+
+# Windows
+*.exe
+*.appx
+
+# Mac
+*.app
+
+# =========================================
+# OPTIONAL: KEEP THESE UNDER VERSION CONTROL
+# =========================================
+# Assets/
+# ProjectSettings/
+# Packages/
+# ### Unity collab-friendly ###
+# ProjectSettings/ProjectSettings.asset
+# Assets/**/*.meta
