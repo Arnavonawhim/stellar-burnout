@@ -14,9 +14,9 @@ public class CharacterAnimationController : MonoBehaviour
     Animator anim;
     Keyboard kb;
     CapsuleCollider col;
-    
+
     bool grounded;
-    int lastDir = -1; // 1 = right, -1 = left    
+    int lastDir = 1;   // 1 = right, -1 = left
 
     float defaultHeight;
     Vector3 defaultCenter;
@@ -42,40 +42,37 @@ public class CharacterAnimationController : MonoBehaviour
         if (kb.aKey.isPressed) move = -1;
         if (kb.dKey.isPressed) move = 1;
 
-        bool running = kb.leftShiftKey.isPressed;
-        bool crouching = kb.leftCtrlKey.isPressed;
-
-        // Facing logic
-        if (move < 0) lastDir = 1;
-        if (move > 0) lastDir = -1;
-
-        if (lastDir == 1)
-            transform.rotation = Quaternion.Euler(0, 270, 0);
-        else
-            transform.rotation = Quaternion.Euler(0, 90, 0);
-
         // Ground check
         grounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 0.3f);
 
+        bool crouching = kb.leftCtrlKey.isPressed;
+        bool running = kb.leftShiftKey.isPressed && grounded && !crouching;
+
+        // Facing
+        if (move < 0) lastDir = -1;
+        if (move > 0) lastDir = 1;
+
+        if (lastDir == 1)
+            transform.rotation = Quaternion.Euler(0, 90, 0);
+        else
+            transform.rotation = Quaternion.Euler(0, 270, 0);
+
         // Jump
-        if (kb.spaceKey.wasPressedThisFrame && grounded)
+        if (kb.spaceKey.wasPressedThisFrame && grounded && !crouching)
         {
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, 0);
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            anim.SetBool("IsJumping", true);
+            anim.SetTrigger("Jump");
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, 0);
         }
 
-        if (grounded)
-            anim.SetBool("IsJumping", false);
-
-        // Movement speed
+        // Speed selection priority
         float speed = walkSpeed;
-        if (running && !crouching) speed = runSpeed;
         if (crouching) speed = crouchSpeed;
+        else if (running) speed = runSpeed;
 
+        // Movement
         rb.linearVelocity = new Vector3(move * speed, rb.linearVelocity.y, 0);
 
-        // Collider crouch change
+        // Collider crouch sizing
         if (crouching && grounded)
         {
             col.height = crouchHeight;
@@ -87,11 +84,12 @@ public class CharacterAnimationController : MonoBehaviour
             col.center = defaultCenter;
         }
 
-        // Animator params
+        // Animator parameters
         anim.SetFloat("MoveSpeed", Mathf.Abs(move));
         anim.SetBool("IsRunning", running);
         anim.SetBool("IsCrouching", crouching);
         anim.SetBool("IsJumping", !grounded);
+        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
 
         // Lock Z plane
         Vector3 pos = transform.position;
