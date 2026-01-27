@@ -20,10 +20,30 @@ public class CharacterSwitcher : MonoBehaviour
     {
         if (kb.eKey.wasPressedThisFrame)
         {
-            isLightActive = !isLightActive;
-            lightCharacter.SetActive(isLightActive);
-            darkCharacter.SetActive(!isLightActive);
+            Switch();
         }
+    }
+
+    void Switch()
+    {
+        Vector3 pos;
+
+        if (isLightActive)
+        {
+            pos = lightCharacter.transform.position;
+            lightCharacter.SetActive(false);
+            darkCharacter.transform.position = pos;
+            darkCharacter.SetActive(true);
+        }
+        else
+        {
+            pos = darkCharacter.transform.position;
+            darkCharacter.SetActive(false);
+            lightCharacter.transform.position = pos;
+            lightCharacter.SetActive(true);
+        }
+
+        isLightActive = !isLightActive;
     }
 
     public bool IsLight() => isLightActive;
