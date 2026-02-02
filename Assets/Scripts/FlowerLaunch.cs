@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FlowerLaunch : MonoBehaviour
 {
-    public float launchForce = 40f;
+    public float launchForce = 40f; // VERY HIGH (tune this)
 
     void OnTriggerEnter(Collider other)
     {

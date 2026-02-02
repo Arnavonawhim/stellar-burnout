@@ -14,7 +14,7 @@ public class CharacterSwitcher : MonoBehaviour
         kb = Keyboard.current;
         lightCharacter.SetActive(false);
         darkCharacter.SetActive(true);
-        isLightActive = false;
+        isLightActive = true;
     }
 
 
