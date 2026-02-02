@@ -9,6 +9,8 @@ public class SolarGrow : MonoBehaviour
     public Color pulseColor = Color.yellow;
     public float pulseSpeed = 4f;
 
+    public float resetDelay = 10f; // time before reset
+
     bool isGrowing = false;
     public bool IsMaxed { get; private set; }
 
@@ -28,18 +30,19 @@ public class SolarGrow : MonoBehaviour
 
     public void StartGrowth()
     {
-        if (IsMaxed || isGrowing) return;
+        if (IsMaxed || isGrowing)
+            return;
+
         StartCoroutine(GrowRoutine());
     }
 
     IEnumerator GrowRoutine()
     {
         isGrowing = true;
-
         float t = 0f;
+
         while (transform.localScale.y < maxHeight)
         {
-            // growth
             float newY = transform.localScale.y + growSpeed * Time.deltaTime;
             if (newY >= maxHeight)
             {
@@ -49,17 +52,32 @@ public class SolarGrow : MonoBehaviour
 
             transform.localScale = new Vector3(startScale.x, newY, startScale.z);
 
-            // pulse
+            // pulse color
             t += Time.deltaTime * pulseSpeed;
-            Color c = Color.Lerp(baseColor, pulseColor, Mathf.PingPong(t, 1f));
-            mat.color = c;
+            mat.color = Color.Lerp(baseColor, pulseColor, Mathf.PingPong(t, 1f));
 
             yield return null;
         }
 
-        // reset color to normal
+        // stop pulsing & return color
         mat.color = baseColor;
 
         isGrowing = false;
+
+        // wait before resetting
+        if (IsMaxed)
+            StartCoroutine(ResetRoutine());
+    }
+
+    IEnumerator ResetRoutine()
+    {
+        yield return new WaitForSeconds(resetDelay);
+
+        // reset scale
+        transform.localScale = startScale;
+
+        // reset properties
+        mat.color = baseColor;
+        IsMaxed = false;
     }
 }
