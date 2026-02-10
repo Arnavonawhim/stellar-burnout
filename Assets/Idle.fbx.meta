@@ -18,12 +18,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: LegsMat
-    second: {fileID: 2100000, guid: 9604efbb45eb49545987ea72f37e4f30, type: 2}
+    second: {fileID: 2100000, guid: 3e769dc3cc3699c4a8ea8062094c69d1, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: TorsoMat
-    second: {fileID: 2100000, guid: f72760d378cb1184a9673af5e3df96b9, type: 2}
+    second: {fileID: 2100000, guid: 1283b1d105c8f064b94cddc9de0445eb, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

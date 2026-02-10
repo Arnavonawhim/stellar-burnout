@@ -1,12 +1,21 @@
 using UnityEngine;
 
-public class CollectibleRotate : MonoBehaviour
+public class Collectible : MonoBehaviour
 {
-    public Vector3 rotationAxis = Vector3.up; // Y axis
-    public float rotationSpeed = 90f; // degrees per second
+    public enum Type { Light, Dark }
+    public Type type;
 
-    void Update()
+    void OnTriggerEnter(Collider other)
     {
-        transform.Rotate(rotationAxis * rotationSpeed * Time.deltaTime);
+        if (type == Type.Light && other.CompareTag("LightPlayer"))
+        {
+            CollectibleManager.instance.CollectLight();
+            Destroy(gameObject);
+        }
+        else if (type == Type.Dark && other.CompareTag("DarkPlayer"))
+        {
+            CollectibleManager.instance.CollectDark();
+            Destroy(gameObject);
+        }
     }
 }

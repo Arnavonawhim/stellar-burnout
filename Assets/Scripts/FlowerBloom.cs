@@ -13,9 +13,6 @@ public class FlowerBloom : MonoBehaviour
     public float firstPeak = 3f;
     public float secondPeak = 5f;
 
-    
-
-
     public bool IsBloomed { get; private set; }
     bool isBlooming;
 
