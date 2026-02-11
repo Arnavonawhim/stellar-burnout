@@ -66,5 +66,5 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "stellar burnout.slnx"
+    "dotnet.defaultSolution": "stellar-burnout.slnx"
 }
