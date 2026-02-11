@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(AudioSource))]
 public class CharacterAnimationController : MonoBehaviour
 {
     [Header("Movement")]
@@ -16,18 +17,29 @@ public class CharacterAnimationController : MonoBehaviour
     public float fallMultiplier = 2.2f;
     public float lowJumpMultiplier = 1.5f;
 
-    [Header("Launch Boost (Flower Boost)")]
-    public float launchDuration = 0.5f;       // how long gravity is reduced
-    public float launchGravityFactor = 0.2f;  // 20% gravity during boost
+    [Header("Launch Boost")]
+    public float launchDuration = 0.5f;
+    public float launchGravityFactor = 0.2f;
 
     [Header("Crouch Collider")]
     public float crouchHeight = 1.0f;
     public Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
 
+    // ✅ SAME SOUND FOR ALL ACTIONS
+    [Header("Robot Movement Sound")]
+    public AudioClip movementSound;
+
+    public float stepIntervalWalk = 0.5f;
+    public float stepIntervalRun = 0.3f;
+    public float stepIntervalCrouch = 0.7f;
+
     Rigidbody rb;
     Animator anim;
     CapsuleCollider col;
     Keyboard kb;
+
+    AudioSource audioSource;
+    float stepTimer;
 
     float defaultHeight;
     Vector3 defaultCenter;
@@ -39,7 +51,7 @@ public class CharacterAnimationController : MonoBehaviour
     bool running;
     float launchTime;
 
-    int lastDir = 1; // 1 = right, -1 = left
+    int lastDir = 1;
 
     void Start()
     {
@@ -48,13 +60,16 @@ public class CharacterAnimationController : MonoBehaviour
         col = GetComponent<CapsuleCollider>();
         kb = Keyboard.current;
 
+        rb.freezeRotation = true;
+        Physics.gravity = new Vector3(0, -20f, 0);
+
         defaultHeight = col.height;
         defaultCenter = col.center;
 
-        rb.freezeRotation = true;
-
-        // stronger gravity for realistic platformer
-        Physics.gravity = new Vector3(0, -20f, 0);
+        // ✅ Setup Audio
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
     }
 
     void Update()
@@ -65,10 +80,12 @@ public class CharacterAnimationController : MonoBehaviour
         if (kb.dKey.isPressed) move = 1;
 
         crouching = kb.leftCtrlKey.isPressed;
-        running = kb.leftShiftKey.isPressed && grounded && !crouching;
 
         // === GROUND CHECK ===
-        grounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 0.35f);
+        grounded = Physics.Raycast(transform.position + Vector3.up * 0.1f,
+                                   Vector3.down, 0.35f);
+
+        running = kb.leftShiftKey.isPressed && grounded;
 
         // === COYOTE TIME ===
         if (grounded) coyoteCounter = coyoteTime;
@@ -78,39 +95,19 @@ public class CharacterAnimationController : MonoBehaviour
         if (move < 0) lastDir = -1;
         if (move > 0) lastDir = 1;
 
-        transform.rotation = lastDir == 1 ?
-            Quaternion.Euler(0, 90, 0) :
-            Quaternion.Euler(0, 270, 0);
+        transform.rotation = (lastDir == 1)
+            ? Quaternion.Euler(0, 90, 0)
+            : Quaternion.Euler(0, 270, 0);
 
-        // === NORMAL JUMP ===
-        if (kb.spaceKey.wasPressedThisFrame && coyoteCounter > 0 && !crouching && !launched)
+        // === JUMP SOUND + JUMP ===
+        if (kb.spaceKey.wasPressedThisFrame && coyoteCounter > 0 && !launched)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, 0);
+
+            // ✅ Play same sound on jump
+            audioSource.PlayOneShot(movementSound);
+
             anim.SetBool("IsJumping", true);
-        }
-
-        // === LAUNCH BOOST PHASE ===
-        if (launched)
-        {
-            launchTime -= Time.deltaTime;
-
-            // reduced gravity hang time
-            rb.linearVelocity += Vector3.up * Physics.gravity.y * (launchGravityFactor - 1f) * Time.deltaTime;
-
-            if (launchTime <= 0f)
-                launched = false;
-        }
-        else
-        {
-            // === BETTER FALL ===
-            if (rb.linearVelocity.y < 0)
-            {
-                rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
-            }
-            else if (rb.linearVelocity.y > 0 && !kb.spaceKey.isPressed)
-            {
-                rb.linearVelocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
-            }
         }
 
         // === SPEED ===
@@ -132,29 +129,60 @@ public class CharacterAnimationController : MonoBehaviour
             col.center = defaultCenter;
         }
 
-        // === LAND RESET ===
-        if (grounded)
-            anim.SetBool("IsJumping", false);
-
-        // === ANIM SYNC ===
+        // === ANIMATION ===
         anim.SetFloat("MoveSpeed", Mathf.Abs(move));
         anim.SetBool("IsRunning", running);
         anim.SetBool("IsCrouching", crouching);
         anim.SetBool("IsJumping", !grounded);
-        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
+
+        // ✅ FOOTSTEP SOUND FOR WALK/RUN/CROUCH
+        HandleMovementSound(move);
 
         // === PLANE LOCK ===
-        var pos = transform.position;
+        Vector3 pos = transform.position;
         pos.z = 0;
         transform.position = pos;
     }
 
-    // FLOWER LAUNCH FUNCTION
+    // ✅ SAME SOUND FOR WALK + RUN + CROUCH
+    void HandleMovementSound(float move)
+    {
+        bool isMoving = Mathf.Abs(move) > 0.1f;
+
+        if (grounded && isMoving)
+        {
+            stepTimer -= Time.deltaTime;
+
+            // Choose interval depending on state
+            float interval = stepIntervalWalk;
+
+            if (running)
+                interval = stepIntervalRun;
+            else if (crouching)
+                interval = stepIntervalCrouch;
+
+            if (stepTimer <= 0f)
+            {
+                audioSource.PlayOneShot(movementSound);
+                stepTimer = interval;
+            }
+        }
+        else
+        {
+            stepTimer = 0f;
+        }
+    }
+
+    // BOOST
     public void Launch(float force)
     {
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, force, 0);
         launched = true;
         launchTime = launchDuration;
+
+        // ✅ Play same sound on launch
+        audioSource.PlayOneShot(movementSound);
+
         anim.SetBool("IsJumping", true);
     }
 }

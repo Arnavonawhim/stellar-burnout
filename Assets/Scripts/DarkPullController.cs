@@ -10,9 +10,18 @@ public class DarkPullController : MonoBehaviour
     PullableObject currentObj;
     Keyboard kb;
 
+    // 🔊 Pull Sound
+    public AudioClip pullStartSound;
+    public AudioClip pullLoopSound;
+    private AudioSource audioSource;
+
     void Start()
     {
         kb = Keyboard.current;
+
+        // Setup AudioSource
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.loop = false;
     }
 
     void Update()
@@ -20,6 +29,7 @@ public class DarkPullController : MonoBehaviour
         if (!switcher.IsDark())
         {
             if (currentObj != null) currentObj.StopPull();
+            StopPullSound();
             currentObj = null;
             return;
         }
@@ -42,11 +52,17 @@ public class DarkPullController : MonoBehaviour
         foreach (var h in hits)
         {
             PullableObject po = h.GetComponent<PullableObject>();
+
             if (po != null)
             {
                 Debug.Log("Found Pullable: " + h.name);
+
                 currentObj = po;
                 po.StartPull(transform);
+
+                // 🔊 Play Pull Start Sound
+                PlayPullSound();
+
                 return;
             }
         }
@@ -56,7 +72,36 @@ public class DarkPullController : MonoBehaviour
 
     void StopPull()
     {
-        if (currentObj != null) currentObj.StopPull();
+        if (currentObj != null)
+            currentObj.StopPull();
+
+        StopPullSound();
         currentObj = null;
+    }
+
+    // 🔊 SOUND FUNCTIONS
+    void PlayPullSound()
+    {
+        if (pullStartSound != null)
+        {
+            audioSource.PlayOneShot(pullStartSound);
+        }
+
+        // Optional Loop Sound
+        if (pullLoopSound != null)
+        {
+            audioSource.clip = pullLoopSound;
+            audioSource.loop = true;
+            audioSource.PlayDelayed(0.1f);
+        }
+    }
+
+    void StopPullSound()
+    {
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+        audioSource.loop = false;
     }
 }

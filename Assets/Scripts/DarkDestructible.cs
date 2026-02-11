@@ -14,11 +14,20 @@ public class DarkDestructible : MonoBehaviour
     public bool IsDestroyed { get; private set; }
     bool pulsing;
 
+    // 🔊 Only one sound
+    public AudioClip destroySound;
+    private AudioSource audioSource;
+
     void Start()
     {
         rend = GetComponentInChildren<Renderer>();
         mat = rend.material;
         baseColor = mat.color;
+
+        // ✅ Add AudioSource automatically
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     public void ActivateDestroy()
@@ -31,12 +40,17 @@ public class DarkDestructible : MonoBehaviour
     {
         pulsing = true;
 
+        // 🔥 Play destroy sound once
+        if (destroySound != null)
+            audioSource.PlayOneShot(destroySound);
+
         // Pulse phase
         float t = 0f;
         while (t < pulseTime)
         {
             t += Time.deltaTime;
-            mat.color = Color.Lerp(baseColor, Color.black, Mathf.PingPong(t * pulseSpeed, 1f));
+            mat.color = Color.Lerp(baseColor, Color.black,
+                Mathf.PingPong(t * pulseSpeed, 1f));
             yield return null;
         }
 
@@ -44,7 +58,7 @@ public class DarkDestructible : MonoBehaviour
         pulsing = false;
         IsDestroyed = true;
 
-        // Scale-down (shrink) phase
+        // Shrink phase
         Vector3 originalScale = transform.localScale;
         float s = 1f;
 
