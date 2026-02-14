@@ -17,9 +17,9 @@ public class CharacterAnimationController : MonoBehaviour
     public float fallMultiplier = 2.2f;
     public float lowJumpMultiplier = 1.5f;
 
-    [Header("Launch Boost")]
-    public float launchDuration = 0.5f;
-    public float launchGravityFactor = 0.2f;
+    [Header("Launch Boost (Flower Boost)")]
+    public float launchDuration = 0.5f;       // how long gravity is reduced
+    public float launchGravityFactor = 0.2f;  // 20% gravity during boost
 
     [Header("Crouch Collider")]
     public float crouchHeight = 1.0f;
@@ -129,11 +129,16 @@ public class CharacterAnimationController : MonoBehaviour
             col.center = defaultCenter;
         }
 
-        // === ANIMATION ===
+        // === LAND RESET ===
+        if (grounded)
+            anim.SetBool("IsJumping", false);
+
+        // === ANIM SYNC ===
         anim.SetFloat("MoveSpeed", Mathf.Abs(move));
         anim.SetBool("IsRunning", running);
         anim.SetBool("IsCrouching", crouching);
         anim.SetBool("IsJumping", !grounded);
+        anim.SetFloat("VerticalSpeed", rb.linearVelocity.y);
 
         // ✅ FOOTSTEP SOUND FOR WALK/RUN/CROUCH
         HandleMovementSound(move);
